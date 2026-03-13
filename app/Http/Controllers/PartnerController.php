@@ -19,7 +19,10 @@ class PartnerController extends Controller
             ]);
 
         if ($search = $request->input('search')) {
-            $query->where('name', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('city', 'like', "%{$search}%");
+            });
         }
 
         if ($category = $request->input('category')) {

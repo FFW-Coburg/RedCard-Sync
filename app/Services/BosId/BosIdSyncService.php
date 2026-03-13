@@ -92,7 +92,8 @@ class BosIdSyncService
                         $this->client->setOrganisations($partner->bosid_bonus_id, $orgIds);
 
                         $this->verbose("  → PUT bonus payload...");
-                        $this->client->updateBonus($partner->bosid_bonus_id, $payload);
+                        $updatePayload = collect($payload)->except('start_at')->all();
+                        $this->client->updateBonus($partner->bosid_bonus_id, $updatePayload);
 
                         // Verify organisations were assigned
                         $this->verifyOrganisations($partner->bosid_bonus_id, $orgIds);
@@ -230,6 +231,8 @@ class BosIdSyncService
                 'name' => $partner->name,
             ],
             'customer_id' => $this->client->getCustomerId(),
+            'start_at' => now()->startOfDay()->toIso8601String(),
+            'end_at' => now()->addYears(10)->endOfDay()->toIso8601String(),
         ];
     }
 
