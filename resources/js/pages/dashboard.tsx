@@ -1,8 +1,21 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowRight, BarChart3, FolderOpen, History, Users } from 'lucide-react';
+import {
+    ArrowRight,
+    BarChart3,
+    FolderOpen,
+    History,
+    Users,
+} from 'lucide-react';
 import { EventTypeBadge } from '@/components/status-badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Category, ChangeLogEntry } from '@/types';
 
@@ -27,9 +40,16 @@ interface Props {
     lastSync: string | null;
 }
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: '/dashboard' }];
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: '/dashboard' },
+];
 
-export default function Dashboard({ stats, categories, recentChanges, lastSync }: Props) {
+export default function Dashboard({
+    stats,
+    categories,
+    recentChanges,
+    lastSync,
+}: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
@@ -40,24 +60,36 @@ export default function Dashboard({ stats, categories, recentChanges, lastSync }
                         title="Aktive Partner"
                         value={stats.active_partners}
                         subtitle={`${stats.inactive_partners} inaktiv`}
-                        icon={<Users className="h-4 w-4 text-muted-foreground" />}
+                        icon={
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                        }
                     />
                     <StatCard
                         title="Mit Details"
                         value={stats.with_details}
                         subtitle={`${stats.without_details} fehlen`}
-                        icon={<BarChart3 className="h-4 w-4 text-muted-foreground" />}
+                        icon={
+                            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                        }
                     />
                     <StatCard
                         title="Kategorien"
                         value={stats.categories}
-                        icon={<FolderOpen className="h-4 w-4 text-muted-foreground" />}
+                        icon={
+                            <FolderOpen className="h-4 w-4 text-muted-foreground" />
+                        }
                     />
                     <StatCard
                         title="Änderungen"
                         value={stats.changes}
-                        subtitle={lastSync ? `Letzter Sync: ${new Date(lastSync).toLocaleDateString('de-DE')}` : undefined}
-                        icon={<History className="h-4 w-4 text-muted-foreground" />}
+                        subtitle={
+                            lastSync
+                                ? `Letzter Sync: ${new Date(lastSync).toLocaleDateString('de-DE')}`
+                                : undefined
+                        }
+                        icon={
+                            <History className="h-4 w-4 text-muted-foreground" />
+                        }
                     />
                 </div>
 
@@ -71,11 +103,21 @@ export default function Dashboard({ stats, categories, recentChanges, lastSync }
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Kategorie</TableHead>
-                                    <TableHead className="text-right">Gesamt</TableHead>
-                                    <TableHead className="text-right">Aktiv</TableHead>
-                                    <TableHead className="text-right">Mit Details</TableHead>
-                                    <TableHead className="text-right">Ohne Details</TableHead>
-                                    <TableHead className="text-right">BOS-ID</TableHead>
+                                    <TableHead className="text-right">
+                                        Gesamt
+                                    </TableHead>
+                                    <TableHead className="text-right">
+                                        Aktiv
+                                    </TableHead>
+                                    <TableHead className="text-right">
+                                        Mit Details
+                                    </TableHead>
+                                    <TableHead className="text-right">
+                                        Ohne Details
+                                    </TableHead>
+                                    <TableHead className="text-right">
+                                        BOS-ID
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -89,17 +131,32 @@ export default function Dashboard({ stats, categories, recentChanges, lastSync }
                                                 {cat.name}
                                             </Link>
                                         </TableCell>
-                                        <TableCell className="text-right">{cat.partners_count}</TableCell>
-                                        <TableCell className="text-right">{cat.partners_active_count}</TableCell>
-                                        <TableCell className="text-right">{cat.partners_with_details_count}</TableCell>
                                         <TableCell className="text-right">
-                                            {cat.partners_without_details_count > 0 ? (
-                                                <span className="text-orange-600 dark:text-orange-400">{cat.partners_without_details_count}</span>
+                                            {cat.partners_count}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            {cat.partners_active_count}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            {cat.partners_with_details_count}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            {cat.partners_without_details_count >
+                                            0 ? (
+                                                <span className="text-orange-600 dark:text-orange-400">
+                                                    {
+                                                        cat.partners_without_details_count
+                                                    }
+                                                </span>
                                             ) : (
-                                                <span className="text-muted-foreground">0</span>
+                                                <span className="text-muted-foreground">
+                                                    0
+                                                </span>
                                             )}
                                         </TableCell>
-                                        <TableCell className="text-right">{cat.partners_synced_count}</TableCell>
+                                        <TableCell className="text-right">
+                                            {cat.partners_synced_count}
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -121,11 +178,16 @@ export default function Dashboard({ stats, categories, recentChanges, lastSync }
                     <CardContent>
                         <div className="space-y-3">
                             {recentChanges.length === 0 && (
-                                <p className="text-sm text-muted-foreground">Keine Änderungen vorhanden.</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Keine Änderungen vorhanden.
+                                </p>
                             )}
                             {recentChanges.map((change) => (
-                                <div key={change.id} className="flex items-center justify-between gap-2 text-sm">
-                                    <div className="flex items-center gap-2 min-w-0">
+                                <div
+                                    key={change.id}
+                                    className="flex items-center justify-between gap-2 text-sm"
+                                >
+                                    <div className="flex min-w-0 items-center gap-2">
                                         <EventTypeBadge event={change.event} />
                                         {change.partner ? (
                                             <Link
@@ -135,11 +197,15 @@ export default function Dashboard({ stats, categories, recentChanges, lastSync }
                                                 {change.partner.name}
                                             </Link>
                                         ) : (
-                                            <span className="truncate text-muted-foreground">Unbekannt</span>
+                                            <span className="truncate text-muted-foreground">
+                                                Unbekannt
+                                            </span>
                                         )}
                                     </div>
-                                    <span className="text-muted-foreground whitespace-nowrap">
-                                        {new Date(change.detected_at).toLocaleDateString('de-DE')}
+                                    <span className="whitespace-nowrap text-muted-foreground">
+                                        {new Date(
+                                            change.detected_at,
+                                        ).toLocaleDateString('de-DE')}
                                     </span>
                                 </div>
                             ))}
@@ -172,7 +238,17 @@ export default function Dashboard({ stats, categories, recentChanges, lastSync }
     );
 }
 
-function StatCard({ title, value, subtitle, icon }: { title: string; value: number; subtitle?: string; icon: React.ReactNode }) {
+function StatCard({
+    title,
+    value,
+    subtitle,
+    icon,
+}: {
+    title: string;
+    value: number;
+    subtitle?: string;
+    icon: React.ReactNode;
+}) {
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -181,7 +257,9 @@ function StatCard({ title, value, subtitle, icon }: { title: string; value: numb
             </CardHeader>
             <CardContent>
                 <div className="text-2xl font-bold">{value}</div>
-                {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+                {subtitle && (
+                    <p className="text-xs text-muted-foreground">{subtitle}</p>
+                )}
             </CardContent>
         </Card>
     );

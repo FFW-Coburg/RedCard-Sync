@@ -1,6 +1,6 @@
 import { Head, router } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
 import { Link } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
 import { useEffect } from 'react';
 import { CommandStatusBadge } from '@/components/status-badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,12 +17,20 @@ export default function CommandShow({ commandRun }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Commands', href: '/commands' },
-        { title: `Run #${commandRun.id}`, href: `/commands/runs/${commandRun.id}` },
+        {
+            title: `Run #${commandRun.id}`,
+            href: `/commands/runs/${commandRun.id}`,
+        },
     ];
 
     // Auto-refresh while running
     useEffect(() => {
-        if (commandRun.status !== 'pending' && commandRun.status !== 'running') return;
+        if (
+            commandRun.status !== 'pending' &&
+            commandRun.status !== 'running'
+        ) {
+            return;
+        }
 
         const interval = setInterval(() => {
             router.reload();
@@ -44,39 +52,58 @@ export default function CommandShow({ commandRun }: Props) {
                         <ArrowLeft className="h-3 w-3" /> Zurück
                     </Link>
                     <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-bold font-mono">{commandRun.command}</h1>
+                        <h1 className="font-mono text-2xl font-bold">
+                            {commandRun.command}
+                        </h1>
                         <CommandStatusBadge status={commandRun.status} />
                     </div>
-                    <div className="mt-1 text-sm text-muted-foreground space-x-4">
+                    <div className="mt-1 space-x-4 text-sm text-muted-foreground">
                         {commandRun.started_at && (
-                            <span>Gestartet: {new Date(commandRun.started_at).toLocaleString('de-DE')}</span>
+                            <span>
+                                Gestartet:{' '}
+                                {new Date(commandRun.started_at).toLocaleString(
+                                    'de-DE',
+                                )}
+                            </span>
                         )}
                         {commandRun.completed_at && (
-                            <span>Fertig: {new Date(commandRun.completed_at).toLocaleString('de-DE')}</span>
+                            <span>
+                                Fertig:{' '}
+                                {new Date(
+                                    commandRun.completed_at,
+                                ).toLocaleString('de-DE')}
+                            </span>
                         )}
                     </div>
                 </div>
 
                 {/* Parameters */}
-                {commandRun.parameters && Object.keys(commandRun.parameters).length > 0 && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Parameter</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableBody>
-                                    {Object.entries(commandRun.parameters).map(([key, value]) => (
-                                        <TableRow key={key}>
-                                            <TableCell className="font-mono text-sm font-medium">{key}</TableCell>
-                                            <TableCell className="text-sm">{String(value)}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-                    </Card>
-                )}
+                {commandRun.parameters &&
+                    Object.keys(commandRun.parameters).length > 0 && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Parameter</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableBody>
+                                        {Object.entries(
+                                            commandRun.parameters,
+                                        ).map(([key, value]) => (
+                                            <TableRow key={key}>
+                                                <TableCell className="font-mono text-sm font-medium">
+                                                    {key}
+                                                </TableCell>
+                                                <TableCell className="text-sm">
+                                                    {String(value)}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    )}
 
                 {/* Output */}
                 <Card>
@@ -86,11 +113,14 @@ export default function CommandShow({ commandRun }: Props) {
                     <CardContent>
                         {commandRun.output ? (
                             <ScrollArea className="h-[400px] rounded-md border bg-muted/50 p-4">
-                                <pre className="text-sm font-mono whitespace-pre-wrap">{commandRun.output}</pre>
+                                <pre className="font-mono text-sm whitespace-pre-wrap">
+                                    {commandRun.output}
+                                </pre>
                             </ScrollArea>
                         ) : (
                             <p className="text-sm text-muted-foreground">
-                                {commandRun.status === 'pending' || commandRun.status === 'running'
+                                {commandRun.status === 'pending' ||
+                                commandRun.status === 'running'
                                     ? 'Warte auf Output...'
                                     : 'Kein Output vorhanden.'}
                             </p>
@@ -99,25 +129,32 @@ export default function CommandShow({ commandRun }: Props) {
                 </Card>
 
                 {/* Result Stats */}
-                {commandRun.result && Object.keys(commandRun.result).length > 0 && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Ergebnis</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableBody>
-                                    {Object.entries(commandRun.result).map(([key, value]) => (
-                                        <TableRow key={key}>
-                                            <TableCell className="font-medium">{key}</TableCell>
-                                            <TableCell>{String(value)}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-                    </Card>
-                )}
+                {commandRun.result &&
+                    Object.keys(commandRun.result).length > 0 && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Ergebnis</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableBody>
+                                        {Object.entries(commandRun.result).map(
+                                            ([key, value]) => (
+                                                <TableRow key={key}>
+                                                    <TableCell className="font-medium">
+                                                        {key}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {String(value)}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ),
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    )}
             </div>
         </AppLayout>
     );

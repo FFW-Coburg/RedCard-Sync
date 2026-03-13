@@ -3,30 +3,39 @@ interface ChangeDiffProps {
 }
 
 export function ChangeDiff({ changes }: ChangeDiffProps) {
-    if (!changes) return null;
+    if (!changes) {
+        return null;
+    }
 
     const oldValues = (changes.old ?? {}) as Record<string, unknown>;
     const newValues = (changes.new ?? {}) as Record<string, unknown>;
 
-    const allKeys = [...new Set([...Object.keys(oldValues), ...Object.keys(newValues)])];
+    const allKeys = [
+        ...new Set([...Object.keys(oldValues), ...Object.keys(newValues)]),
+    ];
 
-    if (allKeys.length === 0) return null;
+    if (allKeys.length === 0) {
+        return null;
+    }
 
     return (
         <div className="space-y-1 text-sm">
             {allKeys.map((key) => {
                 const oldVal = oldValues[key];
                 const newVal = newValues[key];
-                if (oldVal === newVal) return null;
+
+                if (oldVal === newVal) {
+                    return null;
+                }
 
                 return (
                     <div key={key} className="flex gap-2">
-                        <span className="font-medium text-muted-foreground min-w-[140px]">
+                        <span className="min-w-[140px] font-medium text-muted-foreground">
                             {key.replace(/_/g, ' ')}:
                         </span>
                         <div className="flex flex-col gap-0.5">
                             {oldVal != null && (
-                                <span className="text-red-600 dark:text-red-400 line-through">
+                                <span className="text-red-600 line-through dark:text-red-400">
                                     {truncate(String(oldVal))}
                                 </span>
                             )}

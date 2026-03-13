@@ -1,7 +1,11 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, ExternalLink, RefreshCw } from 'lucide-react';
 import { ChangeDiff } from '@/components/change-diff';
-import { DetailsBadge, EventTypeBadge, PartnerStatusBadge } from '@/components/status-badge';
+import {
+    DetailsBadge,
+    EventTypeBadge,
+    PartnerStatusBadge,
+} from '@/components/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,7 +45,9 @@ export default function PartnerShow({ partner, changeLogs }: Props) {
                         <div className="mt-1 flex items-center gap-2">
                             <PartnerStatusBadge isActive={partner.is_active} />
                             <DetailsBadge fetched={partner.details_fetched} />
-                            <span className="text-sm text-muted-foreground">ID: {partner.external_id}</span>
+                            <span className="text-sm text-muted-foreground">
+                                ID: {partner.external_id}
+                            </span>
                         </div>
                     </div>
                     <Button variant="outline" onClick={handleRefetch}>
@@ -57,23 +63,43 @@ export default function PartnerShow({ partner, changeLogs }: Props) {
                             <CardTitle>Kontaktdaten</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2 text-sm">
-                            <InfoRow label="Ort" value={`${partner.postal_code} ${partner.city}`} />
-                            <InfoRow label="Straße" value={partner.street_address} />
-                            <InfoRow label="Ansprechpartner" value={partner.contact_person} />
+                            <InfoRow
+                                label="Ort"
+                                value={`${partner.postal_code} ${partner.city}`}
+                            />
+                            <InfoRow
+                                label="Straße"
+                                value={partner.street_address}
+                            />
+                            <InfoRow
+                                label="Ansprechpartner"
+                                value={partner.contact_person}
+                            />
                             <InfoRow label="Telefon" value={partner.phone} />
                             <InfoRow label="Fax" value={partner.fax} />
                             <InfoRow label="Mobil" value={partner.mobile} />
-                            <InfoRow label="E-Mail" value={partner.email} isEmail />
+                            <InfoRow
+                                label="E-Mail"
+                                value={partner.email}
+                                isEmail
+                            />
                             {partner.website && (
                                 <div className="flex gap-2">
-                                    <span className="font-medium text-muted-foreground min-w-[120px]">Website:</span>
+                                    <span className="min-w-[120px] font-medium text-muted-foreground">
+                                        Website:
+                                    </span>
                                     <a
-                                        href={partner.website.startsWith('http') ? partner.website : `https://${partner.website}`}
+                                        href={
+                                            partner.website.startsWith('http')
+                                                ? partner.website
+                                                : `https://${partner.website}`
+                                        }
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="flex items-center gap-1 text-blue-600 hover:underline dark:text-blue-400"
                                     >
-                                        {partner.website} <ExternalLink className="h-3 w-3" />
+                                        {partner.website}{' '}
+                                        <ExternalLink className="h-3 w-3" />
                                     </a>
                                 </div>
                             )}
@@ -93,8 +119,11 @@ export default function PartnerShow({ partner, changeLogs }: Props) {
                                             {cat.name}
                                         </Badge>
                                     ))}
-                                    {(!partner.categories || partner.categories.length === 0) && (
-                                        <span className="text-sm text-muted-foreground">Keine Kategorien</span>
+                                    {(!partner.categories ||
+                                        partner.categories.length === 0) && (
+                                        <span className="text-sm text-muted-foreground">
+                                            Keine Kategorien
+                                        </span>
                                     )}
                                 </div>
                             </CardContent>
@@ -106,7 +135,9 @@ export default function PartnerShow({ partner, changeLogs }: Props) {
                                     <CardTitle>Rabatt</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-sm">{partner.discount_description}</p>
+                                    <p className="text-sm">
+                                        {partner.discount_description}
+                                    </p>
                                 </CardContent>
                             </Card>
                         )}
@@ -134,15 +165,22 @@ export default function PartnerShow({ partner, changeLogs }: Props) {
                     </CardHeader>
                     <CardContent>
                         {changeLogs.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">Keine Änderungen protokolliert.</p>
+                            <p className="text-sm text-muted-foreground">
+                                Keine Änderungen protokolliert.
+                            </p>
                         ) : (
                             <div className="space-y-4">
                                 {changeLogs.map((log) => (
-                                    <div key={log.id} className="border-l-2 border-muted pl-4 pb-2">
-                                        <div className="flex items-center gap-2 mb-1">
+                                    <div
+                                        key={log.id}
+                                        className="border-l-2 border-muted pb-2 pl-4"
+                                    >
+                                        <div className="mb-1 flex items-center gap-2">
                                             <EventTypeBadge event={log.event} />
                                             <span className="text-sm text-muted-foreground">
-                                                {new Date(log.detected_at).toLocaleString('de-DE')}
+                                                {new Date(
+                                                    log.detected_at,
+                                                ).toLocaleString('de-DE')}
                                             </span>
                                         </div>
                                         <ChangeDiff changes={log.changes} />
@@ -157,13 +195,29 @@ export default function PartnerShow({ partner, changeLogs }: Props) {
     );
 }
 
-function InfoRow({ label, value, isEmail }: { label: string; value: string | null; isEmail?: boolean }) {
-    if (!value) return null;
+function InfoRow({
+    label,
+    value,
+    isEmail,
+}: {
+    label: string;
+    value: string | null;
+    isEmail?: boolean;
+}) {
+    if (!value) {
+        return null;
+    }
+
     return (
         <div className="flex gap-2">
-            <span className="font-medium text-muted-foreground min-w-[120px]">{label}:</span>
+            <span className="min-w-[120px] font-medium text-muted-foreground">
+                {label}:
+            </span>
             {isEmail ? (
-                <a href={`mailto:${value}`} className="text-blue-600 hover:underline dark:text-blue-400">
+                <a
+                    href={`mailto:${value}`}
+                    className="text-blue-600 hover:underline dark:text-blue-400"
+                >
                     {value}
                 </a>
             ) : (

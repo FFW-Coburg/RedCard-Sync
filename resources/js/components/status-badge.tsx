@@ -7,9 +7,20 @@ const partnerStatusMap: Record<string, { label: string; variant: Variant }> = {
     inactive: { label: 'Inaktiv', variant: 'destructive' },
 };
 
-const commandStatusMap: Record<string, { label: string; variant: Variant; className?: string }> = {
-    pending: { label: 'Wartend', variant: 'outline', className: 'border-yellow-500 text-yellow-700 dark:text-yellow-400' },
-    running: { label: 'Läuft', variant: 'outline', className: 'border-blue-500 text-blue-700 dark:text-blue-400' },
+const commandStatusMap: Record<
+    string,
+    { label: string; variant: Variant; className?: string }
+> = {
+    pending: {
+        label: 'Wartend',
+        variant: 'outline',
+        className: 'border-yellow-500 text-yellow-700 dark:text-yellow-400',
+    },
+    running: {
+        label: 'Läuft',
+        variant: 'outline',
+        className: 'border-blue-500 text-blue-700 dark:text-blue-400',
+    },
     completed: { label: 'Fertig', variant: 'default' },
     failed: { label: 'Fehler', variant: 'destructive' },
 };
@@ -24,6 +35,7 @@ const eventTypeMap: Record<string, { label: string; variant: Variant }> = {
 
 export function PartnerStatusBadge({ isActive }: { isActive: boolean }) {
     const config = partnerStatusMap[isActive ? 'active' : 'inactive'];
+
     return <Badge variant={config.variant}>{config.label}</Badge>;
 }
 
@@ -36,7 +48,11 @@ export function DetailsBadge({ fetched }: { fetched: boolean }) {
 }
 
 export function CommandStatusBadge({ status }: { status: string }) {
-    const config = commandStatusMap[status] ?? { label: status, variant: 'outline' as Variant };
+    const config = commandStatusMap[status] ?? {
+        label: status,
+        variant: 'outline' as Variant,
+    };
+
     return (
         <Badge variant={config.variant} className={config.className}>
             {status === 'running' && (
@@ -48,6 +64,10 @@ export function CommandStatusBadge({ status }: { status: string }) {
 }
 
 export function EventTypeBadge({ event }: { event: string }) {
-    const config = eventTypeMap[event] ?? { label: event, variant: 'outline' as Variant };
+    const config = eventTypeMap[event] ?? {
+        label: event,
+        variant: 'outline' as Variant,
+    };
+
     return <Badge variant={config.variant}>{config.label}</Badge>;
 }

@@ -3,12 +3,31 @@ import { Play } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { CommandStatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, CommandRun } from '@/types';
 
@@ -39,25 +58,39 @@ export default function CommandsIndex({ runs, availableCommands }: Props) {
     const [params, setParams] = useState<Record<string, unknown>>({});
     const [submitting, setSubmitting] = useState(false);
     const { props } = usePage();
-    const flash = (props as Record<string, unknown>).flash as Record<string, string> | undefined;
+    const flash = (props as Record<string, unknown>).flash as
+        | Record<string, string>
+        | undefined;
 
-    const commandDef = selectedCommand ? availableCommands[selectedCommand] : null;
+    const commandDef = selectedCommand
+        ? availableCommands[selectedCommand]
+        : null;
 
-    // Initialize params when command changes
-    useEffect(() => {
-        if (commandDef) {
+    const handleCommandChange = (command: string) => {
+        setSelectedCommand(command);
+        const def = availableCommands[command];
+
+        if (def) {
             const defaults: Record<string, unknown> = {};
-            for (const p of commandDef.parameters) {
-                defaults[p.name] = p.default ?? (p.type === 'boolean' ? false : '');
+
+            for (const p of def.parameters) {
+                defaults[p.name] =
+                    p.default ?? (p.type === 'boolean' ? false : '');
             }
+
             setParams(defaults);
         }
-    }, [selectedCommand]);
+    };
 
     // Auto-refresh when there are pending/running jobs
     useEffect(() => {
-        const hasActive = runs.some((r) => r.status === 'pending' || r.status === 'running');
-        if (!hasActive) return;
+        const hasActive = runs.some(
+            (r) => r.status === 'pending' || r.status === 'running',
+        );
+
+        if (!hasActive) {
+            return;
+        }
 
         const interval = setInterval(() => {
             router.reload({ only: ['runs'] });
@@ -67,11 +100,14 @@ export default function CommandsIndex({ runs, availableCommands }: Props) {
     }, [runs]);
 
     const handleRun = () => {
-        if (!selectedCommand) return;
+        if (!selectedCommand) {
+            return;
+        }
+
         setSubmitting(true);
         router.post(
             '/commands/run',
-            { command: selectedCommand, parameters: params },
+            { command: selectedCommand, parameters: params as Record<string, string | boolean | number> },
             {
                 onFinish: () => setSubmitting(false),
             },
@@ -83,7 +119,7 @@ export default function CommandsIndex({ runs, availableCommands }: Props) {
             <Head title="Commands" />
             <div className="flex flex-col gap-6 p-4">
                 {flash?.success && (
-                    <div className="rounded-md bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 p-3 text-sm text-green-800 dark:text-green-200">
+                    <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
                         {flash.success}
                     </div>
                 )}
@@ -92,26 +128,38 @@ export default function CommandsIndex({ runs, availableCommands }: Props) {
                 <Card>
                     <CardHeader>
                         <CardTitle>Command ausführen</CardTitle>
-                        <CardDescription>Wähle einen Command und konfiguriere die Parameter.</CardDescription>
+                        <CardDescription>
+                            Wähle einen Command und konfiguriere die Parameter.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="space-y-2">
                                 <Label>Command</Label>
-                                <Select value={selectedCommand} onValueChange={setSelectedCommand}>
+                                <Select
+                                    value={selectedCommand}
+                                    onValueChange={handleCommandChange}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Command wählen..." />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {Object.entries(availableCommands).map(([key, cmd]) => (
-                                            <SelectItem key={key} value={key}>
-                                                {cmd.label}
-                                            </SelectItem>
-                                        ))}
+                                        {Object.entries(availableCommands).map(
+                                            ([key, cmd]) => (
+                                                <SelectItem
+                                                    key={key}
+                                                    value={key}
+                                                >
+                                                    {cmd.label}
+                                                </SelectItem>
+                                            ),
+                                        )}
                                     </SelectContent>
                                 </Select>
                                 {commandDef && (
-                                    <p className="text-sm text-muted-foreground">{commandDef.description}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        {commandDef.description}
+                                    </p>
                                 )}
                             </div>
 
@@ -124,57 +172,119 @@ export default function CommandsIndex({ runs, availableCommands }: Props) {
                                                 <div className="flex items-center gap-2">
                                                     <Checkbox
                                                         id={param.name}
-                                                        checked={!!params[param.name]}
-                                                        onCheckedChange={(checked) =>
-                                                            setParams((p) => ({ ...p, [param.name]: !!checked }))
+                                                        checked={
+                                                            !!params[param.name]
+                                                        }
+                                                        onCheckedChange={(
+                                                            checked,
+                                                        ) =>
+                                                            setParams((p) => ({
+                                                                ...p,
+                                                                [param.name]:
+                                                                    !!checked,
+                                                            }))
                                                         }
                                                     />
-                                                    <Label htmlFor={param.name}>{param.label}</Label>
+                                                    <Label htmlFor={param.name}>
+                                                        {param.label}
+                                                    </Label>
                                                 </div>
                                             )}
                                             {param.type === 'number' && (
                                                 <div className="space-y-1">
-                                                    <Label htmlFor={param.name}>{param.label}</Label>
+                                                    <Label htmlFor={param.name}>
+                                                        {param.label}
+                                                    </Label>
                                                     <Input
                                                         id={param.name}
                                                         type="number"
-                                                        value={String(params[param.name] ?? '')}
+                                                        value={String(
+                                                            params[
+                                                                param.name
+                                                            ] ?? '',
+                                                        )}
                                                         onChange={(e) =>
-                                                            setParams((p) => ({ ...p, [param.name]: e.target.value }))
+                                                            setParams((p) => ({
+                                                                ...p,
+                                                                [param.name]:
+                                                                    e.target
+                                                                        .value,
+                                                            }))
                                                         }
                                                     />
                                                 </div>
                                             )}
-                                            {param.type === 'select' && param.options && (
-                                                <div className="space-y-1">
-                                                    <Label htmlFor={param.name}>{param.label}</Label>
-                                                    <Select
-                                                        value={String(params[param.name] ?? '')}
-                                                        onValueChange={(v) =>
-                                                            setParams((p) => ({ ...p, [param.name]: v === '_none' ? '' : v }))
-                                                        }
-                                                    >
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Alle" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="_none">Alle</SelectItem>
-                                                            {Object.entries(param.options).map(([slug, name]) => (
-                                                                <SelectItem key={slug} value={slug}>
-                                                                    {name}
+                                            {param.type === 'select' &&
+                                                param.options && (
+                                                    <div className="space-y-1">
+                                                        <Label
+                                                            htmlFor={param.name}
+                                                        >
+                                                            {param.label}
+                                                        </Label>
+                                                        <Select
+                                                            value={String(
+                                                                params[
+                                                                    param.name
+                                                                ] ?? '',
+                                                            )}
+                                                            onValueChange={(
+                                                                v,
+                                                            ) =>
+                                                                setParams(
+                                                                    (p) => ({
+                                                                        ...p,
+                                                                        [param.name]:
+                                                                            v ===
+                                                                            '_none'
+                                                                                ? ''
+                                                                                : v,
+                                                                    }),
+                                                                )
+                                                            }
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Alle" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="_none">
+                                                                    Alle
                                                                 </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                            )}
+                                                                {Object.entries(
+                                                                    param.options,
+                                                                ).map(
+                                                                    ([
+                                                                        slug,
+                                                                        name,
+                                                                    ]) => (
+                                                                        <SelectItem
+                                                                            key={
+                                                                                slug
+                                                                            }
+                                                                            value={
+                                                                                slug
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                name
+                                                                            }
+                                                                        </SelectItem>
+                                                                    ),
+                                                                )}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                )}
                                         </div>
                                     ))}
                                 </div>
                             )}
                         </div>
 
-                        <Button onClick={handleRun} disabled={!selectedCommand || submitting}>
+                        <Button
+                            onClick={handleRun}
+                            disabled={!selectedCommand || submitting}
+                        >
                             <Play className="mr-1 h-4 w-4" />
                             {submitting ? 'Wird gestartet...' : 'Ausführen'}
                         </Button>
@@ -200,25 +310,36 @@ export default function CommandsIndex({ runs, availableCommands }: Props) {
                             <TableBody>
                                 {runs.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                                        <TableCell
+                                            colSpan={5}
+                                            className="py-8 text-center text-muted-foreground"
+                                        >
                                             Noch keine Commands ausgeführt.
                                         </TableCell>
                                     </TableRow>
                                 )}
                                 {runs.map((run) => (
                                     <TableRow key={run.id}>
-                                        <TableCell className="font-mono text-sm">{run.command}</TableCell>
-                                        <TableCell>
-                                            <CommandStatusBadge status={run.status} />
+                                        <TableCell className="font-mono text-sm">
+                                            {run.command}
                                         </TableCell>
-                                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                                        <TableCell>
+                                            <CommandStatusBadge
+                                                status={run.status}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="text-sm whitespace-nowrap text-muted-foreground">
                                             {run.started_at
-                                                ? new Date(run.started_at).toLocaleString('de-DE')
+                                                ? new Date(
+                                                      run.started_at,
+                                                  ).toLocaleString('de-DE')
                                                 : '—'}
                                         </TableCell>
-                                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                                        <TableCell className="text-sm whitespace-nowrap text-muted-foreground">
                                             {run.completed_at
-                                                ? new Date(run.completed_at).toLocaleString('de-DE')
+                                                ? new Date(
+                                                      run.completed_at,
+                                                  ).toLocaleString('de-DE')
                                                 : '—'}
                                         </TableCell>
                                         <TableCell>
