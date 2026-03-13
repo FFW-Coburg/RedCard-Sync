@@ -118,6 +118,14 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'commands' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/commands.log'),
+            'level' => 'debug',
+            'days' => 30,
+            'replace_placeholders' => true,
+        ],
+
         'null' => [
             'driver' => 'monolog',
             'handler' => NullHandler::class,
