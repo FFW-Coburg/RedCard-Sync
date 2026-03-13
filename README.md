@@ -1,4 +1,4 @@
-# RedCardParser
+# RedCard Sync
 
 Web-Anwendung zum Parsen, Synchronisieren und Verwalten der RedCard-Partnerdaten des LFV Bayern. Gebaut mit Laravel 12, React, Inertia.js und shadcn/ui.
 
@@ -10,6 +10,8 @@ Web-Anwendung zum Parsen, Synchronisieren und Verwalten der RedCard-Partnerdaten
 - **Command-Runner** — Artisan-Commands über die UI ausführen mit Live-Status und Output
 - **Export** — Partner- und Änderungsdaten als JSON exportieren
 - **Sync-Engine** — Automatisches Parsen der RedCard-Listing-Seite und Detail-Seiten
+- **BOS-ID Sync** — Abgleich der Partner als Bonusse mit der BOS-ID API
+- **Deutsche Lokalisierung** — Vollständig übersetzte UI (via `laravel-lang`)
 
 ## Voraussetzungen
 
@@ -47,11 +49,15 @@ php artisan queue:work
 
 Die Anwendung ist dann unter `http://localhost:8000` erreichbar.
 
-### Zugangsdaten
+### Benutzer anlegen
 
-| E-Mail              | Passwort   |
-|---------------------|------------|
-| `test@example.com`  | `password` |
+Der Seeder erstellt einen generischen Admin-Account. Für echte Zugänge:
+
+```bash
+php artisan user:create
+```
+
+Der Command fragt Name, E-Mail und Passwort interaktiv ab (oder per `--name`, `--email`, `--password`).
 
 ## Artisan-Commands
 
@@ -70,6 +76,12 @@ php artisan redcard:stats
 
 # Daten exportieren
 php artisan redcard:export [--category=] [--changes-since=] [--output=]
+
+# BOS-ID Sync
+php artisan redcard:sync-bosid [--dry-run] [--category=] [--batch-size=10]
+
+# Benutzer anlegen
+php artisan user:create [--name=] [--email=] [--password=]
 ```
 
 Alle Commands können auch über die Web-UI unter `/commands` ausgeführt werden.
@@ -78,11 +90,11 @@ Alle Commands können auch über die Web-UI unter `/commands` ausgeführt werden
 
 ```
 app/
-├── Console/Commands/     # Artisan-Commands (parse-listing, parse-details, sync, export, stats)
+├── Console/Commands/     # Artisan-Commands (parse, sync, export, stats, user:create, bosid)
 ├── Http/Controllers/     # Dashboard, Partner, ChangeLog, Command, Export
 ├── Jobs/                 # RunArtisanCommandJob (async Command-Ausführung)
 ├── Models/               # User, Partner, Category, ChangeLog, CommandRun
-└── Services/RedCard/     # SyncService, ExportService, HtmlFetcher, Parser
+└── Services/             # RedCard (Sync, Export, Parser) & BosId (API-Client, Sync)
 
 resources/js/
 ├── components/           # UI-Komponenten (Sidebar, StatusBadge, ChangeDiff, shadcn/ui)
