@@ -42,10 +42,26 @@ class BosIdSyncCommand extends Command
             $this->newLine();
         }
 
+        $progressBar = null;
+        if (! $this->output->isVerbose()) {
+            $syncService->setOnProgress(function (int $current, int $total) use (&$progressBar) {
+                if ($progressBar === null) {
+                    $progressBar = $this->output->createProgressBar($total);
+                    $progressBar->start();
+                }
+                $progressBar->setProgress($current);
+            });
+        }
+
         $stats = $syncService->sync($dryRun, $category, $batchSize);
 
+        if ($progressBar) {
+            $progressBar->finish();
+            $this->newLine(2);
+        }
+
         // Show details
-        if (! empty($stats['details'])) {
+        if (! empty($stats['details']) && $this->output->isVerbose()) {
             foreach ($stats['details'] as $detail) {
                 $this->line("  {$detail}");
             }

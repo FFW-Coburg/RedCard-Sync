@@ -15,11 +15,14 @@ class BosIdClient
     private string $password;
     private string $customerId;
     private int $requestDelayMs;
+    private int $rateLimitBackoffMs = 0;
 
     private ?string $token = null;
     private ?float $tokenObtainedAt = null;
 
     private const TOKEN_LIFETIME_SECONDS = 240; // 4 min safety buffer (actual: 5 min)
+    private const RATE_LIMIT_INITIAL_WAIT_MS = 30_000;
+    private const RATE_LIMIT_MAX_RETRIES = 5;
 
     public function __construct()
     {
@@ -108,12 +111,7 @@ class BosIdClient
 
     public function getBonuses(): array
     {
-        $this->ensureAuthenticated();
-        $this->delay();
-
-        $this->logApi('GET_BONUSES', 'GET', '/api/v1/bonuses');
-        $response = $this->authedHttp()->get('/api/v1/bonuses');
-        $this->logApiResponse('GET_BONUSES', $response);
+        $response = $this->request('GET_BONUSES', 'GET', '/api/v1/bonuses');
 
         if (! $response->successful()) {
             throw new RuntimeException('BOS-ID: Failed to fetch bonuses: '.$response->status());
@@ -124,12 +122,7 @@ class BosIdClient
 
     public function getBonus(string $id): array
     {
-        $this->ensureAuthenticated();
-        $this->delay();
-
-        $this->logApi('GET_BONUS', 'GET', "/api/v1/bonuses/{$id}");
-        $response = $this->authedHttp()->get("/api/v1/bonuses/{$id}");
-        $this->logApiResponse('GET_BONUS', $response);
+        $response = $this->request('GET_BONUS', 'GET', "/api/v1/bonuses/{$id}");
 
         if (! $response->successful()) {
             throw new RuntimeException("BOS-ID: Failed to fetch bonus {$id}: ".$response->status());
@@ -140,12 +133,7 @@ class BosIdClient
 
     public function createBonus(array $data): array
     {
-        $this->ensureAuthenticated();
-        $this->delay();
-
-        $this->logApi('CREATE_BONUS', 'POST', '/api/v1/bonuses', $data);
-        $response = $this->authedHttp()->post('/api/v1/bonuses', $data);
-        $this->logApiResponse('CREATE_BONUS', $response);
+        $response = $this->request('CREATE_BONUS', 'POST', '/api/v1/bonuses', $data);
 
         if (! $response->successful()) {
             throw new RuntimeException('BOS-ID: Failed to create bonus: '.$response->status().' '.$response->body());
@@ -159,12 +147,7 @@ class BosIdClient
 
     public function updateBonus(string $id, array $data): void
     {
-        $this->ensureAuthenticated();
-        $this->delay();
-
-        $this->logApi('UPDATE_BONUS', 'PUT', "/api/v1/bonuses/{$id}", $data);
-        $response = $this->authedHttp()->put("/api/v1/bonuses/{$id}", $data);
-        $this->logApiResponse('UPDATE_BONUS', $response);
+        $response = $this->request('UPDATE_BONUS', 'PUT', "/api/v1/bonuses/{$id}", $data);
 
         if (! $response->successful()) {
             throw new RuntimeException("BOS-ID: Failed to update bonus {$id}: ".$response->status().' '.$response->body());
@@ -173,12 +156,7 @@ class BosIdClient
 
     public function deleteBonus(string $id): void
     {
-        $this->ensureAuthenticated();
-        $this->delay();
-
-        $this->logApi('DELETE_BONUS', 'DELETE', "/api/v1/bonuses/{$id}");
-        $response = $this->authedHttp()->delete("/api/v1/bonuses/{$id}");
-        $this->logApiResponse('DELETE_BONUS', $response);
+        $response = $this->request('DELETE_BONUS', 'DELETE', "/api/v1/bonuses/{$id}");
 
         if (! $response->successful()) {
             throw new RuntimeException("BOS-ID: Failed to delete bonus {$id}: ".$response->status());
@@ -192,14 +170,8 @@ class BosIdClient
      */
     public function getOrganisationIds(): array
     {
-        $this->ensureAuthenticated();
-        $this->delay();
-
         $url = "/api/v1/organisations?customer_id={$this->customerId}";
-
-        $this->logApi('GET_ORGS_LIST', 'GET', $url);
-        $response = $this->authedHttp()->get($url);
-        $this->logApiResponse('GET_ORGS_LIST', $response);
+        $response = $this->request('GET_ORGS_LIST', 'GET', $url);
 
         if (! $response->successful()) {
             $this->log()->error('BOS-ID: Failed to fetch organisations.', [
@@ -228,21 +200,9 @@ class BosIdClient
      */
     public function setOrganisations(string $bonusId, array $organisationIds): void
     {
-        $this->ensureAuthenticated();
-        $this->delay();
-
         $body = json_encode(array_values($organisationIds));
 
-        $this->logApi('SET_ORGS', 'PUT', "/api/v1/bonuses/{$bonusId}/organisations", [
-            'organisation_ids' => $organisationIds,
-            'raw_body' => $body,
-        ]);
-
-        $response = $this->authedHttp()
-            ->withBody($body, 'application/json')
-            ->put("/api/v1/bonuses/{$bonusId}/organisations");
-
-        $this->logApiResponse('SET_ORGS', $response);
+        $response = $this->request('SET_ORGS', 'PUT', "/api/v1/bonuses/{$bonusId}/organisations", null, $body);
 
         if (! $response->successful()) {
             throw new RuntimeException(
@@ -257,12 +217,7 @@ class BosIdClient
 
     public function getOrganisations(string $bonusId): array
     {
-        $this->ensureAuthenticated();
-        $this->delay();
-
-        $this->logApi('GET_ORGS', 'GET', "/api/v1/bonuses/{$bonusId}/organisations");
-        $response = $this->authedHttp()->get("/api/v1/bonuses/{$bonusId}/organisations");
-        $this->logApiResponse('GET_ORGS', $response);
+        $response = $this->request('GET_ORGS', 'GET', "/api/v1/bonuses/{$bonusId}/organisations");
 
         if (! $response->successful()) {
             throw new RuntimeException("BOS-ID: Failed to fetch organisations for bonus {$bonusId}: ".$response->status());
@@ -273,11 +228,62 @@ class BosIdClient
 
     // ----- HTTP helpers -----
 
+    private function request(string $action, string $method, string $url, ?array $data = null, ?string $rawBody = null): Response
+    {
+        $this->ensureAuthenticated();
+
+        for ($attempt = 0; $attempt <= self::RATE_LIMIT_MAX_RETRIES; $attempt++) {
+            $this->delay();
+
+            $this->logApi($action, $method, $url, $data ?? ($rawBody ? ['raw_body' => $rawBody] : null));
+
+            $http = $this->authedHttp();
+
+            if ($rawBody !== null) {
+                $http = $http->withBody($rawBody, 'application/json');
+            }
+
+            $response = match ($method) {
+                'GET' => $http->get($url),
+                'POST' => $http->post($url, $data ?? []),
+                'PUT' => $rawBody !== null ? $http->put($url) : $http->put($url, $data ?? []),
+                'DELETE' => $http->delete($url),
+            };
+
+            $this->logApiResponse($action, $response);
+
+            if ($response->status() !== 429) {
+                // Reset backoff on successful non-429 response
+                $this->rateLimitBackoffMs = 0;
+
+                return $response;
+            }
+
+            // 429 Too Many Requests — apply exponential backoff
+            $waitMs = $this->rateLimitBackoffMs > 0
+                ? $this->rateLimitBackoffMs * 2
+                : self::RATE_LIMIT_INITIAL_WAIT_MS;
+            $this->rateLimitBackoffMs = $waitMs;
+
+            $waitSeconds = $waitMs / 1000;
+
+            $this->log()->warning("BOS-ID: Rate limited (429). Waiting {$waitSeconds}s before retry.", [
+                'action' => $action,
+                'attempt' => $attempt + 1,
+                'max_retries' => self::RATE_LIMIT_MAX_RETRIES,
+                'wait_ms' => $waitMs,
+            ]);
+
+            usleep($waitMs * 1000);
+        }
+
+        throw new RuntimeException("BOS-ID: Rate limit exceeded after ".self::RATE_LIMIT_MAX_RETRIES." retries for {$action}");
+    }
+
     private function http(): PendingRequest
     {
         return Http::baseUrl($this->baseUrl)
             ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
-            ->retry(3, 1000, throw: false)
             ->timeout(30);
     }
 
@@ -289,8 +295,9 @@ class BosIdClient
 
     private function delay(): void
     {
-        if ($this->requestDelayMs > 0) {
-            usleep($this->requestDelayMs * 1000);
+        $delayMs = $this->requestDelayMs + $this->rateLimitBackoffMs;
+        if ($delayMs > 0) {
+            usleep($delayMs * 1000);
         }
     }
 

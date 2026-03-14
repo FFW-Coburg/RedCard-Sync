@@ -10,6 +10,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 class BosIdSyncService
 {
     private ?OutputInterface $output = null;
+    /** @var ?\Closure(int $current, int $total): void */
+    private ?\Closure $onProgress = null;
 
     public function __construct(
         private BosIdClient $client,
@@ -18,6 +20,11 @@ class BosIdSyncService
     public function setOutput(OutputInterface $output): void
     {
         $this->output = $output;
+    }
+
+    public function setOnProgress(\Closure $callback): void
+    {
+        $this->onProgress = $callback;
     }
 
     /**
@@ -63,6 +70,8 @@ class BosIdSyncService
             }
         }
 
+        $processed = 0;
+
         foreach ($partners->chunk($batchSize) as $batchIndex => $batch) {
             $log->info('BOS-ID Sync: Processing batch '.($batchIndex + 1));
             $this->verbose("--- Batch ".($batchIndex + 1)." ---");
@@ -80,6 +89,8 @@ class BosIdSyncService
                         $stats[$partner->bosid_bonus_id ? 'updated' : 'created']++;
                         $stats['details'][] = "[DRY RUN] {$action}: {$partner->name}";
                         $log->info("BOS-ID Sync: {$action} — {$partner->name}");
+
+                        $this->advanceProgress(++$processed, $total);
 
                         continue;
                     }
@@ -102,6 +113,8 @@ class BosIdSyncService
                         $stats['updated']++;
                         $stats['details'][] = "Updated: {$partner->name}";
                         $log->info("BOS-ID Sync: Updated bonus for {$partner->name} ({$partner->bosid_bonus_id})");
+
+                        $this->advanceProgress(++$processed, $total);
                     } else {
                         // Create new bonus
                         $this->verbose("  Action: CREATE");
@@ -125,6 +138,8 @@ class BosIdSyncService
                         $stats['created']++;
                         $stats['details'][] = "Created: {$partner->name} → {$bonusId}";
                         $log->info("BOS-ID Sync: Created bonus for {$partner->name} → {$bonusId}");
+
+                        $this->advanceProgress(++$processed, $total);
                     }
                 } catch (\Exception $e) {
                     $stats['errors']++;
@@ -134,6 +149,8 @@ class BosIdSyncService
                         'partner_id' => $partner->id,
                         'error' => $e->getMessage(),
                     ]);
+
+                    $this->advanceProgress(++$processed, $total);
                 }
             }
         }
@@ -241,6 +258,13 @@ class BosIdSyncService
         $normalized = preg_replace('/[^+\d]/', '', $phone);
 
         return substr($normalized, 0, 15);
+    }
+
+    private function advanceProgress(int $current, int $total): void
+    {
+        if ($this->onProgress) {
+            ($this->onProgress)($current, $total);
+        }
     }
 
     private function verbose(string $message): void
